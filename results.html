@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Results</title>
+
+
+	<style>
+		body {
+  font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", Helvetica, Arial, sans-serif; 
+		}
+		.loader {
+		  border: 16px solid #f3f3f3;
+		  border-radius: 50%;
+		  border-top: 16px solid #3498db;
+		  width: 120px;
+		  height: 120px;
+		  -webkit-animation: spin 2s linear infinite; /* Safari */
+		  animation: spin 2s linear infinite;
+		  margin-left: auto;
+    	  margin-right: auto;
+    	  margin-top: 250px;
+		}
+
+		/* Safari */
+		@-webkit-keyframes spin {
+		  0% { -webkit-transform: rotate(0deg); }
+		  100% { -webkit-transform: rotate(360deg); }
+		}
+
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}
+	</style>
+</head>
+<body>
+<div id="loader" class="loader"></div>
+<div>
+<img id="scene1" src="images/Scene-1.png" alt="Scene-1" style="display: none;">
+<img id="scene2" src="images/Scene-2.png" alt="Scene-2" style="display: none;">
+<img id="scene3" src="images/Scene-3.png" alt="Scene-3" style="display: none;">
+<img id="scene4" src="images/Scene-4.png" alt="Scene-4" style="display: none;">
+<img id="scene5" src="images/Scene-5.png" alt="Scene-5" style="display: none;">
+<img id="scene6" src="images/Scene-6.png" alt="Scene-6" style="display: none;">
+<img id="scene7" src="images/Scene-7.png" alt="Scene-7" style="display: none;">
+<img id="scene8" src="images/Scene-8.png" alt="Scene-8" style="display: none;">
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script type="text/javascript">
+    // More API functions here:
+    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+
+    // the link to your model provided by Teachable Machine export panel
+    var URL = [ "https://teachablemachine.withgoogle.com/models/mM_D5T0q/",
+    			"https://teachablemachine.withgoogle.com/models/GpFWjCTD/",
+    			"https://teachablemachine.withgoogle.com/models/amtOKzTo/",
+    			"https://teachablemachine.withgoogle.com/models/_6wSR68g/",
+    			"https://teachablemachine.withgoogle.com/models/AJudLo_X/",
+    			"https://teachablemachine.withgoogle.com/models/1oU53CfK/",
+    			"https://teachablemachine.withgoogle.com/models/N2TT6woD/",
+    			"https://teachablemachine.withgoogle.com/models/KJDM1Xbl/"
+    		  ];
+
+    let model, maxPredictions;
+    var scene = 1;
+    var total= 0.0;
+    var avg = 0.0;
+    var pred = 0.0;
+
+    window.onload = function() {
+    	for (i = 0; i < 8; i++) {
+    		init();
+    	}
+
+    }
+
+    // Load the image model and setup the webcam
+    async function init() {
+        var modelURL = URL[scene-1] + "model.json";
+        var metadataURL = URL[scene-1] + "metadata.json";
+
+        // load the model and metadata
+        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+        // or files from your local hard drive
+        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+        predict();
+
+    }
+
+    // run the webcam image through the image model
+    async function predict() {
+    	var s = "scene"+(scene);
+        // predict can take in an image, video or canvas html element
+        const prediction = await model.predict(eval(s));
+        console.log(prediction);
+        total += prediction[0].probability;
+        scene++;
+        if(scene==9){
+    		avg = total/8;
+    		pred = avg * 10;
+    		console.log("Your ASD risk score is " + pred.toFixed(1)+ "/10");
+    		document.getElementById("loader").style.display = "none";
+    		Swal.fire({
+    		  title: 'ASD Risk Score',
+    		  text: "Your ASD risk score is " + pred.toFixed(1)+ "/10. IMPORTANT: Please note that this is not at all a diagnosis. Rather, it is just a suggestion from us regarding whether you might want to go for clinical diagnosis",
+    		  showCancelButton: true,
+    		  confirmButtonColor: '#3085d6',
+    		  cancelButtonColor: '#3085d6',
+    		  confirmButtonText: 'Take the test again',
+    		  cancelButtonText: 'Go to Home Page',
+    		  reverseButtons: true
+    		}).then((result) => {
+    		  if (result.value) {
+    		  	window.location.href="tracker.html";
+    		  }
+    		  else if (result.dismiss === Swal.DismissReason.cancel){
+    		  	window.location.href="index.html";
+    		  }
+    		})
+
+    	}
+    }
+</script>
+</body>
+</html>
